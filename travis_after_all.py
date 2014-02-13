@@ -2,9 +2,10 @@ import os
 import json
 import time
 import logging
+
 try:
     import urllib.request as urllib2
-except:
+except ImportError:
     import urllib2
 
 log = logging.getLogger("travis.leader")
@@ -26,9 +27,11 @@ if not os.getenv(TRAVIS_JOB_NUMBER):
     log.fatal("Don't use defining leader for build without matrix")
     exit(1)
 elif is_leader(os.getenv(TRAVIS_JOB_NUMBER)):
-    os.environ["BUILD_LEADER"] = "YES"
     log.info("This is a leader")
 else:
+    #since python is subprocess, env variables are exported back via file
+    with open(".to_export_back", "w") as export_var:
+        export_var.write("BUILD_MINION=YES")
     log.info("This is a minion")
     exit(0)
 
@@ -77,14 +80,18 @@ try:
     log.info("Final Results: {0}".format([(e.number, e.is_succeeded) for e in final_snapshot]))
 
     BUILD_AGGREGATE_STATUS = 'BUILD_AGGREGATE_STATUS'
-    if reduce(lambda a, b: a and b, [e.is_succeeded for e in final_snapshot]):
-        os.environ[BUILD_AGGREGATE_STATUS] = "all_succeeded"
-    elif reduce(lambda a, b: a and b, [not e.is_succeeded for e in final_snapshot]):
-        log.error("All Failed")
-        os.environ[BUILD_AGGREGATE_STATUS] = "all_failed"
+    others_snapshot = [el for el in final_snapshot if not el.is_leader]
+    if reduce(lambda a, b: a and b, [e.is_succeeded for e in others_snapshot]):
+        os.environ[BUILD_AGGREGATE_STATUS] = "others_succeeded"
+    elif reduce(lambda a, b: a and b, [not e.is_succeeded for e in others_snapshot]):
+        log.error("Others Failed")
+        os.environ[BUILD_AGGREGATE_STATUS] = "others_failed"
     else:
+        log.warn("Others Unknown")
         os.environ[BUILD_AGGREGATE_STATUS] = "unknown"
+    #since python is subprocess, env variables are exported back via file
+    with open(".to_export_back", "w") as export_var:
+        export_var.write("BUILD_LEADER=YES {0}={1}".format(BUILD_AGGREGATE_STATUS, os.environ[BUILD_AGGREGATE_STATUS]))
 
-    log.info("{0}={1}".format(BUILD_AGGREGATE_STATUS, os.getenv(BUILD_AGGREGATE_STATUS)))
 except Exception as e:
     log.fatal(e)
