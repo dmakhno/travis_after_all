@@ -1,8 +1,11 @@
 import os
 import json
 import time
-import urllib2
 import logging
+try:
+    import urllib.request as urllib2
+except:
+    import urllib2
 
 log = logging.getLogger("travis.leader")
 log.addHandler(logging.StreamHandler())
