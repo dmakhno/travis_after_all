@@ -3,7 +3,8 @@ python:
   - '2.7'
   - '3.2'
 script:
-  - curl -o travis_after_all.py https://raw.github.com/dmakhno/travis_after_all/master/travis_after_all.py
+  - echo "Doing something..."
+  - echo "Done"
 after_success:
   - python travis_after_all.py
   - export $(cat .to_export_back)
