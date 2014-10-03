@@ -20,6 +20,7 @@ GITHUB_TOKEN = 'GITHUB_TOKEN'
 
 build_id = os.getenv(TRAVIS_BUILD_ID)
 polling_interval = int(os.getenv(POLLING_INTERVAL, '5'))
+gh_token = os.getenv(GITHUB_TOKEN)
 
 #assume, first job is the leader
 is_leader = lambda job_number: job_number.endswith('.1')
@@ -75,7 +76,7 @@ def wait_others_to_finish(token):
         time.sleep(polling_interval)
 
 def getToken():
-    data = {"github_token":"64bc8ef6fd43dc43bdefed14e7b7385d864c2cd8"}
+    data = {"github_token":gh_token}
     headers = {'content-type': 'application/json'}
     response = requests.post('https://api.travis-ci.com/auth/github', data=json.dumps(data), headers=headers).json()
     token = response.get('access_token')
