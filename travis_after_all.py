@@ -86,7 +86,7 @@ try:
     token = getToken()
     wait_others_to_finish(token)
 
-    final_snapshot = matrix_snapshot()
+    final_snapshot = matrix_snapshot(token)
     log.info("Final Results: {0}".format([(e.number, e.is_succeeded) for e in final_snapshot]))
 
     BUILD_AGGREGATE_STATUS = 'BUILD_AGGREGATE_STATUS'
