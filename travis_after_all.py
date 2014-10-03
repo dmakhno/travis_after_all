@@ -2,6 +2,7 @@ import os
 import json
 import time
 import logging
+import requests
 
 try:
     import urllib.request as urllib2
@@ -15,6 +16,7 @@ log.setLevel(logging.INFO)
 TRAVIS_JOB_NUMBER = 'TRAVIS_JOB_NUMBER'
 TRAVIS_BUILD_ID = 'TRAVIS_BUILD_ID'
 POLLING_INTERVAL = 'LEADER_POLLING_INTERVAL'
+GITHUB_TOKEN = 'GITHUB_TOKEN'
 
 build_id = os.getenv(TRAVIS_BUILD_ID)
 polling_interval = int(os.getenv(POLLING_INTERVAL, '5'))
@@ -44,24 +46,24 @@ class MatrixElement(object):
         self.is_leader = is_leader(self.number)
 
 
-def matrix_snapshot():
+def matrix_snapshot(token):
     """
     :return: Matrix List
     """
-    response = urllib2.build_opener().open("https://api.travis-ci.org/builds/{0}".format(build_id)).read()
+    response = urllib2.build_opener().open("https://api.travis-ci.com/builds/{0}?access_token={1}".format(build_id, token)).read()
     raw_json = json.loads(response)
     matrix_without_leader = [MatrixElement(element) for element in raw_json["matrix"]]
     return matrix_without_leader
 
 
-def wait_others_to_finish():
+def wait_others_to_finish(token):
     def others_finished():
         """
         Dumps others to finish
         Leader cannot finish, it is working now
         :return: tuple(True or False, List of not finished jobs)
         """
-        snapshot = matrix_snapshot()
+        snapshot = matrix_snapshot(token)
         finished = [el.is_finished for el in snapshot if not el.is_leader]
         return reduce(lambda a, b: a and b, finished), [el.number for el in snapshot if
                                                         not el.is_leader and not el.is_finished]
@@ -72,9 +74,16 @@ def wait_others_to_finish():
         log.info("Leader waits for minions {0}...".format(waiting_list))  # just in case do not get "silence timeout"
         time.sleep(polling_interval)
 
+def getToken():
+    data = {"github_token":"64bc8ef6fd43dc43bdefed14e7b7385d864c2cd8"}
+    headers = {'content-type': 'application/json'}
+    response = requests.post('https://api.travis-ci.org/auth/github', data=json.dumps(data), headers=headers).json()
+    token = response.get('access_token')
+    return token
 
 try:
-    wait_others_to_finish()
+    token = getToken()
+    wait_others_to_finish(token)
 
     final_snapshot = matrix_snapshot()
     log.info("Final Results: {0}".format([(e.number, e.is_succeeded) for e in final_snapshot]))
