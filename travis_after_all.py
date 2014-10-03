@@ -77,7 +77,7 @@ def wait_others_to_finish(token):
 def getToken():
     data = {"github_token":"64bc8ef6fd43dc43bdefed14e7b7385d864c2cd8"}
     headers = {'content-type': 'application/json'}
-    response = requests.post('https://api.travis-ci.org/auth/github', data=json.dumps(data), headers=headers).json()
+    response = requests.post('https://api.travis-ci.com/auth/github', data=json.dumps(data), headers=headers).json()
     token = response.get('access_token')
     return token
 
