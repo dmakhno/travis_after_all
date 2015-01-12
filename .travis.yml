@@ -1,7 +1,12 @@
 language: python
 python:
+  - '2.6'
   - '2.7'
   - '3.2'
+  - '3.3'
+  - '3.4'
+  - 'pypy'
+  - 'pypy3'
 script:
   - echo "Doing something..."
   - echo "Done"
@@ -11,9 +16,9 @@ after_success:
   - |
       if [ "$BUILD_LEADER" = "YES" ]; then
         if [ "$BUILD_AGGREGATE_STATUS" = "others_succeeded" ]; then
-          echo "All Succeded! PUBLISHING..."
+          echo "All jobs succeeded! PUBLISHING..."
         else
-          echo "Some Failed"
+          echo "Some jobs failed"
         fi
       fi
 after_failure:
@@ -22,9 +27,9 @@ after_failure:
   - |
       if [ "$BUILD_LEADER" = "YES" ]; then
         if [ "$BUILD_AGGREGATE_STATUS" = "others_failed" ]; then
-          echo "All Failed"
+          echo "All jobs failed"
         else
-          echo "Some Failed"
+          echo "Some jobs failed"
         fi
       fi
 after_script:
