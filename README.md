@@ -14,7 +14,7 @@ Existing .travis.yml show how to ensure that all_succeeded or all_failed
 ```yaml
 #...
 script:
-  - curl -o travis_after_all.py https://raw.github.com/dmakhno/travis_after_all/master/travis_after_all.py
+  - curl -Lo travis_after_all.py https://raw.github.com/dmakhno/travis_after_all/master/travis_after_all.py
 after_success:
   - python travis_after_all.py
   - export $(cat .to_export_back)
