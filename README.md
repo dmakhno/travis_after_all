@@ -1,15 +1,15 @@
-travis_after_all 
+travis_after_all
 ================
 
 [![Build Status](https://travis-ci.org/dmakhno/travis_after_all.png?branch=master)](https://travis-ci.org/dmakhno/travis_after_all)
 
-This is travis helper to run particular work only once in matrix.
+This is Travis CI helper to run particular work only once in matrix.
 
 This is workaround for: https://github.com/travis-ci/travis-ci/issues/929
 
-The main goal of this script to have single publishing when build have several jobs. Currently first job is a leader, meaning a node who will mostly do publishing.
+The main goal of this script to have a single publish when a build has several jobs. Currently the first job is a leader, meaning a node that will do the publishing.
 
-Existing .travis.yml show how to ensure that all_succeeded or all_failed
+An example .travis.yml shows how to ensure that `all_succeeded` or `all_failed`:
 
 ```yaml
 #...
@@ -21,9 +21,9 @@ after_success:
   - |
       if [ "$BUILD_LEADER" = "YES" ]; then
         if [ "$BUILD_AGGREGATE_STATUS" = "others_succeeded" ]; then
-          echo "All Succeded! PUBLISHING..."
+          echo "All jobs succeeded! PUBLISHING..."
         else
-          echo "Some Failed"
+          echo "Some jobs failed"
         fi
       fi
 after_failure:
@@ -32,9 +32,9 @@ after_failure:
   - |
       if [ "$BUILD_LEADER" = "YES" ]; then
         if [ "$BUILD_AGGREGATE_STATUS" = "others_failed" ]; then
-          echo "All Failed"
+          echo "All jobs failed"
         else
-          echo "Some Failed"
+          echo "Some jobs failed"
         fi
       fi
 after_script:
@@ -44,6 +44,6 @@ after_script:
 Limitations/Todo
 ----------------
 
-- If other jobs will start late, can be global build timeout. (Think of passing leader role to others, for example who started last is the leader)
-- More flexible leader defenition (In Matrix not all jobs can publish)
-- Have several leaders, according to flavours (E.g. if in Matrix slices responsible for platform)
+- If other jobs will start late, can be global build timeout (think of passing leader role to others, for example who started last is the leader).
+- More flexible leader definition (in matrix not all jobs can publish).
+- Have several leaders, according to flavours (e.g. if in matrix slices responsible for platform).
