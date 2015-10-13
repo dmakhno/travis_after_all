@@ -7,6 +7,9 @@ python:
   - '3.4'
   - 'pypy'
   - 'pypy3'
+env:
+  # robot
+  GITHUB_TOKEN=3e280059f35b5af185438759eea7acb7fb6e761e
 sudo: false # Use container-based infrastructure
 script:
   - echo "Doing something..."
