@@ -2,7 +2,6 @@ import os
 import json
 import time
 import logging
-import requests
 
 try:
     import urllib.request as urllib2
@@ -25,11 +24,13 @@ gh_token = os.getenv(GITHUB_TOKEN)
 #assume, first job is the leader
 is_leader = lambda job_number: job_number.endswith('.1')
 
-if not os.getenv(TRAVIS_JOB_NUMBER):
+job_number = os.getenv(TRAVIS_JOB_NUMBER)
+
+if not job_number:
     # seems even for builds with only one job, this won't get here
     log.fatal("Don't use defining leader for build without matrix")
     exit(1)
-elif is_leader(os.getenv(TRAVIS_JOB_NUMBER)):
+elif is_leader(job_number):
     log.info("This is a leader")
 else:
     #since python is subprocess, env variables are exported back via file
@@ -75,15 +76,18 @@ def wait_others_to_finish(token):
         log.info("Leader waits for minions {0}...".format(waiting_list))  # just in case do not get "silence timeout"
         time.sleep(polling_interval)
 
-def getToken():
-    data = {"github_token":gh_token}
+def get_token():
+    data = {"github_token": gh_token}
     headers = {'content-type': 'application/json'}
-    response = requests.post('https://api.travis-ci.com/auth/github', data=json.dumps(data), headers=headers).json()
-    token = response.get('access_token')
+
+    req = urllib2.Request("https://api.travis-ci.com/auth/github", json.dumps(data), headers)
+    response = urllib2.urlopen(req).read()
+    token = json.loads(response).get('access_token')
+
     return token
 
 try:
-    token = getToken()
+    token = get_token()
     wait_others_to_finish(token)
 
     final_snapshot = matrix_snapshot(token)
