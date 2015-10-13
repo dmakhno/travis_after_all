@@ -16,7 +16,7 @@ An example .travis.yml shows how to ensure that `all_succeeded` or `all_failed`:
 script:
   - curl -Lo travis_after_all.py https://raw.github.com/dmakhno/travis_after_all/master/travis_after_all.py
 after_success:
-  - python travis_after_all.py
+  - python travis_after_all.py https://api.travis-ci.com
   - export $(cat .to_export_back)
   - |
       if [ "$BUILD_LEADER" = "YES" ]; then
@@ -27,7 +27,7 @@ after_success:
         fi
       fi
 after_failure:
-  - python travis_after_all.py
+  - python travis_after_all.py https://api.travis-ci.com
   - export $(cat .to_export_back)
   - |
       if [ "$BUILD_LEADER" = "YES" ]; then
