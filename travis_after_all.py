@@ -61,7 +61,7 @@ def matrix_snapshot(travis_token):
     req = urllib2.Request("{0}/builds/{1}".format(travis_entry, build_id), headers=headers)
     response = urllib2.urlopen(req).read()
     raw_json = json.loads(response)
-    matrix_without_leader = [MatrixElement(element) for element in raw_json["matrix"]]
+    matrix_without_leader = [MatrixElement(job) for job in raw_json["matrix"] if not is_leader(job['number'])]
     return matrix_without_leader
 
 
