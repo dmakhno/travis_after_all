@@ -1,12 +1,12 @@
 language: python
 python:
-  - '2.6'
   - '2.7'
   - '3.2'
   - '3.3'
   - '3.4'
   - 'pypy'
   - 'pypy3'
+  - '2.6'
 env:
   # robot
   GITHUB_TOKEN_P1=7bea5d170ca6f7c162d7
