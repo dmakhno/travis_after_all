@@ -86,6 +86,7 @@ def wait_others_to_finish(travis_token):
 
 
 def get_token():
+    assert gh_token, 'GITHUB_TOKEN is not set'
     data = {"github_token": gh_token}
     headers = {'content-type': 'application/json'}
 
