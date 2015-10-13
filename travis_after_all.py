@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import time
 import logging
@@ -17,11 +18,15 @@ TRAVIS_BUILD_ID = 'TRAVIS_BUILD_ID'
 POLLING_INTERVAL = 'LEADER_POLLING_INTERVAL'
 GITHUB_TOKEN = 'GITHUB_TOKEN'
 
+
+# Travis API entry point, there are at least https://api.travis-ci.com and https://api.travis-ci.org
+travis_entry = sys.argv[1] if len(sys.argv) > 1 else 'https://api.travis-ci.org'
+
 build_id = os.getenv(TRAVIS_BUILD_ID)
 polling_interval = int(os.getenv(POLLING_INTERVAL, '5'))
 gh_token = os.getenv(GITHUB_TOKEN)
 
-#assume, first job is the leader
+# assume, first job is the leader
 is_leader = lambda job_number: job_number.endswith('.1')
 
 job_number = os.getenv(TRAVIS_JOB_NUMBER)
@@ -33,7 +38,7 @@ if not job_number:
 elif is_leader(job_number):
     log.info("This is a leader")
 else:
-    #since python is subprocess, env variables are exported back via file
+    # since python is subprocess, env variables are exported back via file
     with open(".to_export_back", "w") as export_var:
         export_var.write("BUILD_MINION=YES")
     log.info("This is a minion")
@@ -48,43 +53,49 @@ class MatrixElement(object):
         self.is_leader = is_leader(self.number)
 
 
-def matrix_snapshot(token):
+def matrix_snapshot(travis_token):
     """
     :return: Matrix List
     """
-    response = urllib2.build_opener().open("https://api.travis-ci.com/builds/{0}?access_token={1}".format(build_id, token)).read()
+    headers = {'content-type': 'application/json', 'Authorization': 'token {}'.format(travis_token)}
+    req = urllib2.Request("{0}/builds/{1}".format(travis_entry, build_id), headers=headers)
+    response = urllib2.urlopen(req).read()
     raw_json = json.loads(response)
-    matrix_without_leader = [MatrixElement(element) for element in raw_json["matrix"]]
+    matrix_without_leader = [MatrixElement(job) for job in raw_json["matrix"] if not is_leader(job['number'])]
     return matrix_without_leader
 
 
-def wait_others_to_finish(token):
+def wait_others_to_finish(travis_token):
     def others_finished():
         """
         Dumps others to finish
         Leader cannot finish, it is working now
         :return: tuple(True or False, List of not finished jobs)
         """
-        snapshot = matrix_snapshot(token)
-        finished = [el.is_finished for el in snapshot if not el.is_leader]
-        return reduce(lambda a, b: a and b, finished), [el.number for el in snapshot if
-                                                        not el.is_leader and not el.is_finished]
+        snapshot = matrix_snapshot(travis_token)
+        finished = [job.is_finished for job in snapshot if not job.is_leader]
+        return reduce(lambda a, b: a and b, finished), [job.number for job in snapshot if
+                                                        not job.is_leader and not job.is_finished]
 
     while True:
         finished, waiting_list = others_finished()
-        if finished: break
+        if finished:
+            break
         log.info("Leader waits for minions {0}...".format(waiting_list))  # just in case do not get "silence timeout"
         time.sleep(polling_interval)
 
+
 def get_token():
+    assert gh_token, 'GITHUB_TOKEN is not set'
     data = {"github_token": gh_token}
     headers = {'content-type': 'application/json'}
 
-    req = urllib2.Request("https://api.travis-ci.com/auth/github", json.dumps(data), headers)
+    req = urllib2.Request("{0}/auth/github".format(travis_entry), json.dumps(data), headers)
     response = urllib2.urlopen(req).read()
-    token = json.loads(response).get('access_token')
+    travis_token = json.loads(response).get('access_token')
 
-    return token
+    return travis_token
+
 
 try:
     token = get_token()
@@ -103,7 +114,7 @@ try:
     else:
         log.warn("Others Unknown")
         os.environ[BUILD_AGGREGATE_STATUS] = "unknown"
-    #since python is subprocess, env variables are exported back via file
+    # since python is subprocess, env variables are exported back via file
     with open(".to_export_back", "w") as export_var:
         export_var.write("BUILD_LEADER=YES {0}={1}".format(BUILD_AGGREGATE_STATUS, os.environ[BUILD_AGGREGATE_STATUS]))
 
