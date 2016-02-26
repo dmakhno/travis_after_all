@@ -3,7 +3,11 @@ import sys
 import json
 import time
 import logging
-from functools import reduce
+
+try:
+    from functools import reduce
+except ImportError:
+    pass
 
 try:
     import urllib.request as urllib2
