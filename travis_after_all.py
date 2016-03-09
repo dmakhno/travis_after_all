@@ -5,6 +5,11 @@ import time
 import logging
 
 try:
+    from functools import reduce
+except ImportError:
+    pass
+
+try:
     import urllib.request as urllib2
 except ImportError:
     import urllib2
@@ -60,7 +65,7 @@ def matrix_snapshot(travis_token):
     headers = {'content-type': 'application/json', 'Authorization': 'token {}'.format(travis_token)}
     req = urllib2.Request("{0}/builds/{1}".format(travis_entry, build_id), headers=headers)
     response = urllib2.urlopen(req).read()
-    raw_json = json.loads(response)
+    raw_json = json.loads(response.decode('utf-8'))
     matrix_without_leader = [MatrixElement(job) for job in raw_json["matrix"] if not is_leader(job['number'])]
     return matrix_without_leader
 
@@ -90,9 +95,9 @@ def get_token():
     data = {"github_token": gh_token}
     headers = {'content-type': 'application/json'}
 
-    req = urllib2.Request("{0}/auth/github".format(travis_entry), json.dumps(data), headers)
+    req = urllib2.Request("{0}/auth/github".format(travis_entry), json.dumps(data).encode('utf-8'), headers)
     response = urllib2.urlopen(req).read()
-    travis_token = json.loads(response).get('access_token')
+    travis_token = json.loads(response.decode('utf-8')).get('access_token')
 
     return travis_token
 
