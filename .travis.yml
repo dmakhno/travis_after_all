@@ -9,6 +9,8 @@ python:
   - 'pypy3'
 script:
   - echo "Doing something..."
+  - python -m pip install flake8
+  - flake8
   - echo "Done"
 after_success:
   - python travis_after_all.py
