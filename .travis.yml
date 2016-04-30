@@ -13,8 +13,10 @@ env:
   GITHUB_TOKEN_P1=7bea5d170ca6f7c162d7
   GITHUB_TOKEN_P2=58961507e413df080e9c
 sudo: false # Use container-based infrastructure
+install: "pip install flake8"
 script:
   - echo "Doing something..."
+  - flake8
   - echo "Done"
 after_success:
   - export GITHUB_TOKEN=${GITHUB_TOKEN_P1}${GITHUB_TOKEN_P2}

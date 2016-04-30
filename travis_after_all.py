@@ -32,7 +32,10 @@ polling_interval = int(os.getenv(POLLING_INTERVAL, '5'))
 gh_token = os.getenv(GITHUB_TOKEN)
 
 # assume, first job is the leader
-is_leader = lambda job_number: job_number.endswith('.1')
+
+
+def is_leader(job_number):
+    return job_number.endswith('.1')
 
 job_number = os.getenv(TRAVIS_JOB_NUMBER)
 
@@ -51,6 +54,7 @@ else:
 
 
 class MatrixElement(object):
+
     def __init__(self, json_raw):
         self.is_finished = json_raw['finished_at'] is not None
         self.is_succeeded = json_raw['result'] == 0
