@@ -3,32 +3,32 @@ travis_after_all
 
 [![Build Status](https://travis-ci.org/dmakhno/travis_after_all.png?branch=master)](https://travis-ci.org/dmakhno/travis_after_all)
 
-This is Travis CI helper to run particular work only once in matrix.
+This is a Travis CI helper to run particular work only once in matrix.
 
-This is workaround for: https://github.com/travis-ci/travis-ci/issues/929
+This is a workaround for: https://github.com/travis-ci/travis-ci/issues/929
 
 
 Dependencies
 -------------
-This script asumes an environment variable called `GITHUB_TOKEN` is always
-available for Travis builds. This token will be used for retrieving a temporary
+This script assumes an environment variable called `GITHUB_TOKEN` is always
+available for Travis CI builds. This token will be used for retrieving a temporary
 Travis token for the LEADER job to poll Travis about the state of the other
 jobs.
 
-Read more about creating a suitable Github token
+Read more about creating a suitable GitHub token
 [here](https://docs.travis-ci.com/user/github-oauth-scopes/#Travis-CI-for-Private-Projects).
 
 Once you have a suitable token available, you can make sure it ends up
-encrypted in your `.travis.yml` file by doing:
+encrypted in your .travis.yml file by doing:
 
-```
+```bash
 gem install travis
 travis encrypt GITHUB_TOKEN="github-token" --add
 ```
 
-After this step you will find new lines in your travis config:
+After this step you will find new lines in your Travis CI config:
 
-```
+```yaml
 env:
   global:
     secure: "encrypted-github-token"
