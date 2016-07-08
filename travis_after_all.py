@@ -97,7 +97,7 @@ def wait_others_to_finish(travis_token):
 def get_token():
     assert gh_token, 'GITHUB_TOKEN is not set'
     data = {"github_token": gh_token}
-    headers = {'content-type': 'application/json'}
+    headers = {'content-type': 'application/json', 'User-Agent': 'Travis/1.0'}
 
     req = urllib2.Request("{0}/auth/github".format(travis_entry), json.dumps(data).encode('utf-8'), headers)
     response = urllib2.urlopen(req).read()
